@@ -1,7 +1,13 @@
+"""Configuration file for PM10 forecasting project."""
+
 from pathlib import Path
+import yaml
 
 from dotenv import load_dotenv
 from loguru import logger
+from dataclasses import dataclass
+from datetime import datetime
+
 
 # Load environment variables from .env file if it exists
 load_dotenv()
@@ -21,12 +27,36 @@ MODELS_DIR = PROJ_ROOT / "models"
 REPORTS_DIR = PROJ_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
-# If tqdm is installed, configure loguru with tqdm.write
-# https://github.com/Delgan/loguru/issues/135
-try:
-    from tqdm import tqdm
+# Load the YAML configuration
+CONFIG_PATH = PROJ_ROOT / "config" / "base.yaml"
 
-    logger.remove(0)
-    logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
-except ModuleNotFoundError:
-    pass
+
+@dataclass
+class DatasetConfig:
+    """Dataset configuration.
+
+    Attributes:
+        min_date (datetime): Minimum date that is expected to exist and to be taken from the dataset.
+        max_date (datetime): Maximum date that is expected to exist and to be taken from the dataset.
+        path (str): Path to the dataset file.
+        column_mapping(dict[str,str]): Mapping of column names from the dataset to the ones provided in
+        configuraion.
+        column_types (dict[str, str]): Mapping of column name to its type.
+    """
+
+    min_date: datetime
+    max_date: datetime
+    path: str
+    column_mapping: dict[str, str]
+    column_types: dict[str, str]
+
+    def load_congfig(self):
+        """Read the yaml configuration."""
+        with open(CONFIG_PATH, "r") as conf_file:
+            yaml_config = yaml.safe_load(conf_file)
+
+            for key, value in yaml_config.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+                else:
+                    raise ValueError(f"No {key, value} is definded in config.py!")
