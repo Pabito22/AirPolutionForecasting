@@ -17,6 +17,7 @@ dataset:
     time: datetime
     air_temp: float64
     dew_point_temp: float64
+    relative_humidity: float64
     air_pressure: float64
     sea_level_pressure: float64
     wind_direction: float64
