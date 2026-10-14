@@ -1,1 +1,1 @@
-from airpollutionforecasting import config  # noqa: F401
+"""Placeholder."""

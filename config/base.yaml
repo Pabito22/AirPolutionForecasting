@@ -1,9 +1,9 @@
 dataset:
   min_date: "2016-01-01 00:00"
   max_date: "2025-06-30 23:00"
-  path: "data/processed/training_dataset.csv"
+  path: "data/cleaned/cleaned_dataset.csv"
   column_mapping:
-    time : datetime
+    time : time
     averageAirTemp : air_temp
     averageDewPointTemperature: dew_point_temp
     averageRelativeHumidity : relative_humidity

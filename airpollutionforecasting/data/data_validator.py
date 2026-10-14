@@ -25,65 +25,68 @@ class DataValidator:
         """
         self.dataset_config = dataset_config
 
-    def _validate_columns(self, processed_data: pandas.DataFrame):
-        """
-        Ensure the data contains only the expected columns and types.
-
-        Args:
-            processed_data (pandas.DataFrame): The processed dataset to validate.
-
-        Raises:
-            DataValidationError: If unexpected columns are found.
-        """
+    def _validate_columns(self, loaded_data: pandas.DataFrame) -> None:
+        """Ensure data contains expected columns and types."""
         expected_columns = set(self.dataset_config.column_mapping.values())
-        actual_columns = set(processed_data.columns)
+        actual_columns = set(loaded_data.columns)
+
+        missing_columns = expected_columns - actual_columns
         unexpected_columns = actual_columns - expected_columns
+
+        if missing_columns:
+            raise DataValidationError(
+                f"Data is missing expected columns: {missing_columns}."
+            )
 
         if unexpected_columns:
             raise DataValidationError(
                 f"Data contains unexpected columns: {unexpected_columns}."
             )
 
-        # Check wether the type of the column is as expected
         for column, expected in self.dataset_config.column_types.items():
-            actual = processed_data[column]
+            actual = loaded_data[column]
+
             valid = (
                 pandas.api.types.is_datetime64_any_dtype(actual)
                 if expected == "datetime"
                 else str(actual.dtype) == expected
             )
+
             if not valid:
                 raise DataValidationError(
-                    f"{column} should be {expected}, not {actual.dtype}"
+                    f"{column} should be {expected}, not {actual.dtype}."
                 )
 
-    def _date_range_validation(self, processed_data: pandas.DataFrame) -> None:
-        """Ensures that data contains all dates in the range specified in config."""
+    def _date_range_validation(self, loaded_data: pandas.DataFrame) -> None:
+        """Ensure data covers the configured date range."""
         datetime_column = self.dataset_config.column_mapping.get("time", "datetime")
-        if processed_data.empty or datetime_column not in processed_data.columns:
+
+        if loaded_data.empty or datetime_column not in loaded_data.columns:
             raise DataValidationError(
                 f"Data must contain a non-empty '{datetime_column}' column."
             )
 
-        actual_min = processed_data[datetime_column].min()
-        actual_max = processed_data[datetime_column].max()
-        expected_min = self.dataset_config.min_date
-        expected_max = self.dataset_config.max_date
-        if actual_min != expected_min or actual_max != expected_max:
+        actual_min = loaded_data[datetime_column].min()
+        actual_max = loaded_data[datetime_column].max()
+
+        if (
+            actual_min != self.dataset_config.min_date
+            or actual_max != self.dataset_config.max_date
+        ):
             raise DataValidationError(
-                f"Expected date range {expected_min} to {expected_max}, "
-                f"got {actual_min} to {actual_max}."
+                f"Expected date range {self.dataset_config.min_date} to "
+                f"{self.dataset_config.max_date}, got {actual_min} to {actual_max}."
             )
 
-    def _validate_no_missing_values(self, processed_data: pandas.DataFrame) -> None:
+    def _validate_no_missing_values(self, loaded_data: pandas.DataFrame) -> None:
         """Ensure that no missing values remain in the processed data."""
-        missing_columns = processed_data.columns[processed_data.isna().any()].tolist()
+        missing_columns = loaded_data.columns[loaded_data.isna().any()].tolist()
         if missing_columns:
             raise DataValidationError(
                 f"Data contains missing values in columns: {missing_columns}."
             )
 
-    def check_issues(self, processed_data: pandas.DataFrame) -> Optional[None]:
+    def check_issues(self, loaded_data: pandas.DataFrame) -> Optional[None]:
         """
         Validate the quality of the processed data.
 
@@ -94,7 +97,7 @@ class DataValidator:
             4. Ensures no NaN values are present in the data.
 
         Args:
-            processed_data (pandas.DataFrame): The processed dataset to validate.
+            loaded_data (pandas.DataFrame): The processed dataset to validate.
 
         Returns:
             None if the data meets expectations.
@@ -103,7 +106,7 @@ class DataValidator:
             DataValidationError: If any validation check fails.
         """
         logger.info("Starting data validation...")
-        self._validate_columns(processed_data=processed_data)
+        self._validate_columns(loaded_data=loaded_data)
         logger.info("Column validation passed.")
-        self._date_range_validation(processed_data=processed_data)
-        self._validate_no_missing_values(processed_data=processed_data)
+        self._date_range_validation(loaded_data=loaded_data)
+        self._validate_no_missing_values(loaded_data=loaded_data)
