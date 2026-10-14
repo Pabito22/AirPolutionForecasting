@@ -13,8 +13,7 @@ Project aims to predict future PM10 concetration based on historical and future 
 ├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
 ├── README.md          <- The top-level README for developers using this project.
 ├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
+│   ├── cleaned        <- Cleaned, combined data (1 step afterr raw).
 │   ├── processed      <- The final, canonical data sets for modeling.
 │   └── raw            <- The original, immutable data dump.
 │
