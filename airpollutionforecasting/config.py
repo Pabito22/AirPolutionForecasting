@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 
 # Load environment variables from .env file if it exists
@@ -50,13 +51,22 @@ class DatasetConfig:
     column_mapping: dict[str, str]
     column_types: dict[str, str]
 
-    def load_congfig(self):
-        """Read the yaml configuration."""
-        with open(CONFIG_PATH, "r") as conf_file:
-            yaml_config = yaml.safe_load(conf_file)
+    @classmethod
+    def from_yaml(cls, config_path: Path = CONFIG_PATH) -> "DatasetConfig":
+        """Create a dataset configuration from the YAML file."""
+        with config_path.open("r", encoding="utf-8") as conf_file:
+            yaml_config: dict[str, Any] = yaml.safe_load(conf_file)
 
-            for key, value in yaml_config.items():
-                if hasattr(self, key):
-                    setattr(self, key, value)
-                else:
-                    raise ValueError(f"No {key, value} is definded in config.py!")
+        try:
+            dataset_config = yaml_config["dataset"]
+            return cls(
+                min_date=datetime.fromisoformat(dataset_config["min_date"]),
+                max_date=datetime.fromisoformat(dataset_config["max_date"]),
+                path=dataset_config["path"],
+                column_mapping=dataset_config["column_mapping"],
+                column_types=dataset_config["column_types"],
+            )
+        except (KeyError, TypeError) as error:
+            raise ValueError(
+                "Invalid or incomplete dataset configuration in YAML."
+            ) from error
