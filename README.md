@@ -44,8 +44,11 @@ Project aims to predict future PM10 concetration based on historical and future 
     │
     ├── config.py               <- Store useful variables and configuration
     │
-    ├── dataset.py              <- Scripts to download or generate data
-    │
+    ├── data              <- Scripts to download or generate data
+    │   ├── __init__.py
+    │   ├── data_validator.py          <- Validates weather data meets all criterria for goof quality
+    │   └── loader.py            <- Loads the data from the local csv file
+    |
     ├── features.py             <- Code to create features for modeling
     │
     ├── modeling
