@@ -33,18 +33,10 @@ class DataSplitter:
 
         # generate file names
         split_dates = self.config.data_split_dates
-        split_files :list[str] = [
-            f"data/loaded/train_{str(split_dates[0])}_{str(split_dates[1])}_cleaned.csv",
-            f"data/loaded/validation_{str(split_dates[2])}_{str(split_dates[3])}_cleaned.csv",
-            f"data/loaded/test_{str(split_dates[4])}_{str(split_dates[5])}_cleaned.csv"
-            ]
-
-        #if files exist, return generated list of paths
-        if all(Path(file).is_file() for file in split_files):
-            return split_files
-
 
         # check if config correct
+        if len(split_dates)!=6:
+            raise ValueError(f"the configured split dates should have 6 entries, current has {len(split_dates)}")
         #check for continouity
         for i in range(1,3):
             if split_dates[2*i]-split_dates[2*i-1] != timedelta(hours=1):
@@ -57,9 +49,23 @@ class DataSplitter:
         # check if the dates are between min and max dates specidied in configuration
         if split_dates[0] < self.config.min_date or split_dates[-1] > self.config.max_date:
             raise ValueError("Dates specified in the data_split_dates are not between max and min dates!")
-        
 
-        # TODO: split data and save them in generated names
+        Path("data/loaded").mkdir(parents=True, exist_ok=True)
+
+        split_files :list[str] = [
+            f"data/loaded/train_{str(split_dates[0])}_{str(split_dates[1])}_cleaned.csv",
+            f"data/loaded/validation_{str(split_dates[2])}_{str(split_dates[3])}_cleaned.csv",
+            f"data/loaded/test_{str(split_dates[4])}_{str(split_dates[5])}_cleaned.csv"
+            ]
+
+        #if files exist, return generated list of paths
+        if all(Path(file).is_file() for file in split_files):
+            return split_files
+
+        #split data and save them in generated names
+        for i in range(3):
+            split_data = loaded_data[(loaded_data["time"]>=split_dates[2*i])&(loaded_data["time"]<=split_dates[2*i+1])]
+            split_data.to_csv(split_files[i], index=False)
 
         return split_files
     
