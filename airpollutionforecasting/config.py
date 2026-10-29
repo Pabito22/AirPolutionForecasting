@@ -43,6 +43,8 @@ class DatasetConfig:
         column_mapping(dict[str,str]): Mapping of column names from the dataset to the ones provided in
         configuraion.
         column_types (dict[str, str]): Mapping of column name to its type.
+        data_split_dates (list[datetime]): List of dates, that specify the start and end of train, validation
+            and test datasets: [train_start, train_end, val_start, val_end, test_start, test_end]
     """
 
     min_date: datetime
@@ -50,6 +52,7 @@ class DatasetConfig:
     path: str
     column_mapping: dict[str, str]
     column_types: dict[str, str]
+    data_split_dates: list[datetime]
 
     @classmethod
     def from_yaml(cls, config_path: Path = CONFIG_PATH) -> "DatasetConfig":
@@ -65,6 +68,7 @@ class DatasetConfig:
                 path=dataset_config["path"],
                 column_mapping=dataset_config["column_mapping"],
                 column_types=dataset_config["column_types"],
+                data_split_dates = [datetime.fromisoformat(val) for val in dataset_config["data_split_dates"]],
             )
         except (KeyError, TypeError) as error:
             raise ValueError(
