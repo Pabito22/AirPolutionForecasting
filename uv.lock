@@ -32,9 +32,11 @@ dev = [
     { name = "types-tqdm" },
 ]
 notebook = [
+    { name = "ipykernel" },
     { name = "ipython" },
     { name = "jupyterlab" },
     { name = "notebook" },
+    { name = "pip" },
 ]
 
 [package.metadata]
@@ -59,9 +61,11 @@ dev = [
     { name = "types-tqdm", specifier = ">=4.70.0.20260805" },
 ]
 notebook = [
+    { name = "ipykernel", specifier = ">=7.3.0" },
     { name = "ipython" },
     { name = "jupyterlab" },
     { name = "notebook" },
+    { name = "pip", specifier = ">=26.2.2" },
 ]
 
 [[package]]
@@ -1227,6 +1231,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772, upload-time = "2023-11-25T06:56:14.81Z" },
+]
+
+[[package]]
+name = "pip"
+version = "26.2.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/fa/e8/0842d757e483e895e670f655084cfe8b8c72580c6769a76b30b2789a0608/pip-26.2.2.tar.gz", hash = "sha256:3a8e5c800492787f33a4114ef54444546c340df428974ebba17e0fd47e11af2f", size = 1863336, upload-time = "2026-10-20T16:36:29.008Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl", hash = "sha256:fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70", size = 1819850, upload-time = "2026-10-20T16:36:27.046Z" },
 ]
 
 [[package]]

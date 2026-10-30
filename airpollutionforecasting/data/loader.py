@@ -68,5 +68,5 @@ class DataLoader:
 
         # Sort chronologically; keep time as a regular column.
         data = data.sort_values(datetime_column).reset_index(drop=True)
-        
+
         return data

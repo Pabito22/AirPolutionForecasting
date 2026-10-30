@@ -34,7 +34,22 @@ dev = [
 ]
 
 notebook = [
+    "ipykernel>=7.3.0",
     "ipython",
     "jupyterlab",
     "notebook",
+    "pip>=26.2.2",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["airpollutionforecasting*"]
+exclude = [
+    "data*",
+    "models*",
+    "notebooks*",
+    "reports*",
+    "references*",
+    "test*",
+    "tests*"
 ]
