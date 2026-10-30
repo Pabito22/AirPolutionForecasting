@@ -85,28 +85,99 @@ class DataValidator:
             raise DataValidationError(
                 f"Data contains missing values in columns: {missing_columns}."
             )
+    def _validate_no_duplicates(self, loaded_data: pandas.DataFrame) -> None:
+        """Ensure that no duplicated rows exist."""
+        duplicated = loaded_data.duplicated()
 
-    def validate(self, loaded_data: pandas.DataFrame) -> Optional[None]:
+        if duplicated.any():
+            raise DataValidationError(
+                f"Data contains {duplicated.sum()} duplicated rows."
+            )
+
+    def _validate_chronological_order(
+        self, loaded_data: pandas.DataFrame) -> None:
+        """Ensure data is sorted chronologically."""
+        datetime_column = self.dataset_config.column_mapping.get("time", "datetime")
+
+        if not loaded_data[datetime_column].is_monotonic_increasing:
+            raise DataValidationError(
+                f"Data is not sorted chronologically by '{datetime_column}'."
+            )
+
+    def _validate_time_continuity(
+        self, loaded_data: pandas.DataFrame
+    ) -> None:
+        """Ensure there are no missing hourly timestamps."""
+        datetime_column = self.dataset_config.column_mapping.get("time", "datetime")
+
+        time_diffs = loaded_data[datetime_column].diff().dropna()
+
+        invalid_diffs = time_diffs != pandas.Timedelta(hours=1)
+
+        if invalid_diffs.any():
+            raise DataValidationError(
+                f"Found {invalid_diffs.sum()} missing or irregular hourly intervals."
+            )
+
+    def _validate_unique_timestamps(self, loaded_data: pandas.DataFrame) -> None:
+        """Ensure every timestamp occurs only once."""
+        datetime_column = self.dataset_config.column_mapping.get("time", "datetime")
+
+        if loaded_data[datetime_column].duplicated().any():
+            raise DataValidationError("Data contains duplicated timestamps.")
+
+    
+    def validate(self, loaded_data: pandas.DataFrame) -> None:
         """
-        Validate the quality of the processed data.
+        Validate the quality and consistency of the processed dataset.
 
-        Notes:
-            1. Ensures data contains required columns.
-            2. Ensures right types of columns.
-            3. Ensures that data contains all dates in the range specified in config.
-            4. Ensures no NaN values are present in the data.
+        Validation checks:
+            1. Required columns are present and no unexpected columns exist.
+            2. All columns have the expected data types.
+            3. The dataset covers the configured minimum and maximum dates.
+            4. No missing (NaN) values are present.
+            5. No duplicated rows are present.
+            6. Timestamps are unique.
+            7. Data is sorted in chronological order.
+            8. Timestamps are continuous, with exactly one-hour intervals.
 
         Args:
             loaded_data (pandas.DataFrame): The processed dataset to validate.
 
         Returns:
-            None if the data meets expectations.
+            None: If all validation checks pass.
 
         Raises:
             DataValidationError: If any validation check fails.
         """
         logger.info("Starting data validation...")
-        self._validate_columns(loaded_data=loaded_data)
-        self._date_range_validation(loaded_data=loaded_data)
-        self._validate_no_missing_values(loaded_data=loaded_data)
-        logger.info("Data is clean, does not contain any nan values and is sorted bby dates.")
+
+        logger.info("Checking required columns and data types...")
+        self._validate_columns(loaded_data)
+        logger.success("Column and data type validation passed.")
+
+        logger.info("Checking configured date range...")
+        self._date_range_validation(loaded_data)
+        logger.success("Date range validation passed.")
+
+        logger.info("Checking for missing values...")
+        self._validate_no_missing_values(loaded_data)
+        logger.success("Missing values validation passed.")
+
+        logger.info("Checking for duplicated rows...")
+        self._validate_no_duplicates(loaded_data)
+        logger.success("Duplicate rows validation passed.")
+
+        logger.info("Checking for duplicated timestamps...")
+        self._validate_unique_timestamps(loaded_data)
+        logger.success("Timestamp uniqueness validation passed.")
+
+        logger.info("Checking chronological ordering...")
+        self._validate_chronological_order(loaded_data)
+        logger.success("Chronological ordering validation passed.")
+
+        logger.info("Checking hourly timestamp continuity...")
+        self._validate_time_continuity(loaded_data)
+        logger.success("Timestamp continuity validation passed.")
+
+        logger.success("All data validation checks passed.")
