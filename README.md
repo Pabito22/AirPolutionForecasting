@@ -51,6 +51,8 @@ Project aims to predict future PM10 concetration based on historical and future 
     |
     ├── features.py             <- Code to create features for modeling
     │
+    ├── pipeline.py             <- orchestrator for each of pipeline stepd (load, validate, split,..,predict,..)
+    │
     ├── modeling
     │   ├── __init__.py
     │   ├── predict.py          <- Code to run model inference with trained models

@@ -86,7 +86,7 @@ class DataValidator:
                 f"Data contains missing values in columns: {missing_columns}."
             )
 
-    def check_issues(self, loaded_data: pandas.DataFrame) -> Optional[None]:
+    def validate(self, loaded_data: pandas.DataFrame) -> Optional[None]:
         """
         Validate the quality of the processed data.
 

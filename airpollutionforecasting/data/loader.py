@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas
 
 from airpollutionforecasting.config import PROJ_ROOT, DatasetConfig
-
+from loguru import logger
 
 class DataLoader:
     """Load the data from the cleaned CSV file."""
@@ -16,6 +16,7 @@ class DataLoader:
 
     def load(self) -> pandas.DataFrame:
         """Load, normalize, type, and date-filter the configured dataset."""
+        logger.info("Loading the data..")
         data_path = Path(self.config.path)
         if not data_path.is_absolute():
             data_path = PROJ_ROOT / data_path

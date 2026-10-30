@@ -3,6 +3,7 @@
 from pathlib import Path
 from datetime import timedelta
 import pandas
+from loguru import logger
 
 from airpollutionforecasting.config import DatasetConfig
 
@@ -31,8 +32,12 @@ class DataSplitter:
         Returns:
             data_split_locations (list[str]): [train, val, test] cleaned data locations."""
 
+        logger.info("Splitting the data into train, validation and test sets.")
+
         # generate file names
         split_dates = self.config.data_split_dates
+
+        logger.info(f"Split dates: {split_dates}")
 
         # check if config correct
         if len(split_dates)!=6:
