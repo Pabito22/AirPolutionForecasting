@@ -16,14 +16,14 @@ class DataValidationError(Exception):
 class DataValidator:
     """Ensures that data meets quality standards such as completeness, continuity, and correctness."""
 
-    def __init__(self, dataset_config: DatasetConfig):
+    def __init__(self, data_config: DatasetConfig):
         """
         Initialize the DataValidator.
 
         Args:
             dataset_config (DatasetConfig): Configuration for the dataset.
         """
-        self.dataset_config = dataset_config
+        self.dataset_config = data_config
 
     def _validate_columns(self, loaded_data: pandas.DataFrame) -> None:
         """Ensure data contains expected columns and types."""
@@ -107,6 +107,6 @@ class DataValidator:
         """
         logger.info("Starting data validation...")
         self._validate_columns(loaded_data=loaded_data)
-        logger.info("Column validation passed.")
         self._date_range_validation(loaded_data=loaded_data)
         self._validate_no_missing_values(loaded_data=loaded_data)
+        logger.info("Data is clean, does not contain any nan values and is sorted bby dates.")

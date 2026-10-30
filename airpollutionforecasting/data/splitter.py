@@ -5,7 +5,7 @@ from datetime import timedelta
 import pandas
 from loguru import logger
 
-from airpollutionforecasting.config import DatasetConfig
+from airpollutionforecasting.config import DatasetConfig, PROJ_ROOT
 
 class DataSplitter:
     """Split data into train, validation and test set according to configuration."""
@@ -14,7 +14,7 @@ class DataSplitter:
         """Initialize splitter."""
         self.config = data_config
 
-    def split(self, loaded_data: pandas.DataFrame) -> list[str]:
+    def split(self, loaded_data: pandas.DataFrame) -> list[Path]:
         """Split the data into train, val, test set and returns the location of result.
 
         Params:
@@ -55,12 +55,13 @@ class DataSplitter:
         if split_dates[0] < self.config.min_date or split_dates[-1] > self.config.max_date:
             raise ValueError("Dates specified in the data_split_dates are not between max and min dates!")
 
-        Path("data/loaded").mkdir(parents=True, exist_ok=True)
+        output_dir = PROJ_ROOT / "data" / "loaded"
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         split_files :list[str] = [
-            f"data/loaded/train_{str(split_dates[0])}_{str(split_dates[1])}_cleaned.csv",
-            f"data/loaded/validation_{str(split_dates[2])}_{str(split_dates[3])}_cleaned.csv",
-            f"data/loaded/test_{str(split_dates[4])}_{str(split_dates[5])}_cleaned.csv"
+            output_dir / f"train_{str(split_dates[0])}_{str(split_dates[1])}_cleaned.csv",
+            output_dir/ f"validation_{str(split_dates[2])}_{str(split_dates[3])}_cleaned.csv",
+            output_dir/ f"test_{str(split_dates[4])}_{str(split_dates[5])}_cleaned.csv"
             ]
 
         #if files exist, return generated list of paths

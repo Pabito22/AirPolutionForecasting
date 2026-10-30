@@ -55,7 +55,7 @@ class DatasetConfig:
     data_split_dates: list[datetime]
 
     @classmethod
-    def from_yaml(cls, config_path: Path = CONFIG_PATH) -> "DatasetConfig":
+    def load_config(cls, config_path: Path = CONFIG_PATH) -> "DatasetConfig":
         """Create a dataset configuration from the YAML file."""
         with config_path.open("r", encoding="utf-8") as conf_file:
             yaml_config: dict[str, Any] = yaml.safe_load(conf_file)
