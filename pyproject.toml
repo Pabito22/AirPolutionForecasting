@@ -16,7 +16,6 @@ dependencies = [
     "loguru",
     "matplotlib>=3.11.2",
     "pandas",
-    "pip>=26.2.2",
     "python-dotenv",
     "pyyaml>=6.0.3",
     "seaborn>=0.13.2",
@@ -33,6 +32,7 @@ dev = [
     "pytest",
     "ruff",
     "types-pyyaml>=6.0.12.20260724",
+    "types-seaborn>=0.13.2.20261006",
     "types-tqdm>=4.70.0.20260805",
 ]
 

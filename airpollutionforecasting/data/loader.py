@@ -7,6 +7,7 @@ import pandas
 from airpollutionforecasting.config import PROJ_ROOT, DatasetConfig
 from loguru import logger
 
+
 class DataLoader:
     """Load the data from the cleaned CSV file."""
 

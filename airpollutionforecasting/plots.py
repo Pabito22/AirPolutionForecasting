@@ -1,18 +1,35 @@
 """Module for plotting utilities."""
 
 from pathlib import Path
-from typing import Optional
-from typing import Optional, Sequence
+from typing import Literal, Optional, Sequence
 
-from  matplotlib import pyplot 
-import pandas 
+from matplotlib import pyplot
+import pandas
 import seaborn
 import typer
 import matplotlib.dates as mdates
 
-from airpollutionforecasting.config import FIGURES_DIR, PROCESSED_DATA_DIR
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
+
 
 app = typer.Typer()
+
+
+LegendLoc = Literal[
+    "best",
+    "upper right",
+    "upper left",
+    "lower left",
+    "lower right",
+    "right",
+    "center left",
+    "center right",
+    "lower center",
+    "upper center",
+    "center",
+]
 
 
 def draw_histogram(
@@ -56,7 +73,9 @@ def draw_histogram(
         ax=ax,
     )
 
-    ax.set_xlabel(x_label if x_label is not None else str(data.name or "Value"), fontsize=12)
+    ax.set_xlabel(
+        x_label if x_label is not None else str(data.name or "Value"), fontsize=12
+    )
     ax.set_ylabel(y_label, fontsize=12)
 
     if title:
@@ -71,6 +90,7 @@ def draw_histogram(
         save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path, dpi=300, bbox_inches="tight")
 
+
 def draw_timeseries(
     data: pandas.DataFrame,
     x: str,
@@ -80,7 +100,7 @@ def draw_timeseries(
     title: Optional[str] = None,
     labels: Optional[Sequence[str]] = None,
     legend: bool = True,
-    legend_loc: str = "best",
+    legend_loc: LegendLoc = "best",
     secondary_y: Optional[Sequence[str]] = None,
     secondary_y_label: Optional[str] = None,
     figsize: tuple[float, float] = (12, 5),
@@ -92,7 +112,7 @@ def draw_timeseries(
     save_path: Optional[Path] = None,
     start: Optional[str | pandas.Timestamp] = None,
     end: Optional[str | pandas.Timestamp] = None,
-) -> None:
+) -> Figure:
     """
     Plot one or more columns of a dataframe against a datetime column.
 
@@ -101,30 +121,47 @@ def draw_timeseries(
         x: Name of the datetime column (or the index name if the datetime is the index).
         y: Column name or list of column names to plot on the same axes.
         x_label: X axis label. Defaults to the name of `x`.
-        y_label: Y axis label. Defaults to the column name if one column is plotted, else none.
+        y_label: Left Y axis label. Defaults to the column name if only one column
+            is plotted, otherwise none.
         title: Figure title. No title unless specified.
-        labels: Legend names for the series (same length as y). Defaults to column names.
-        legend: Show the legend (only shown when there is more than one series, or labels are given).
+        labels: Legend names for the series. Must match the plotted columns in order
+            (`y` first, then any extra columns that appear only in `secondary_y`).
+            Defaults to column names.
+        legend: Show the legend (only when there is more than one series or `labels` is given).
         legend_loc: Matplotlib legend location, e.g. "upper right", "best".
-        secondary_y: Subset of `y` columns to draw on a right-hand y axis (useful for different scales).
+        secondary_y: Columns to draw on a right-hand y axis. Columns not in `y`
+            are added automatically.
         secondary_y_label: Label for the right-hand axis.
         figsize: Figure size in inches.
         linewidth: Line width.
         markers: Draw a marker on each data point.
-        resample: Pandas offset alias to resample by mean, e.g. "D", "W", "M".
+        resample: Pandas offset alias to resample by mean, e.g. "D", "W", "ME".
         rolling: Window size (in samples, after resampling) for a rolling mean.
         date_format: strftime format for x tick labels, e.g. "%Y-%m". Auto if None.
-        save_path: If given, the figure is saved there (e.g. FIGURES_DIR / "pm25_ts.png").
+        save_path: If given, the figure is saved there (e.g. FIGURES_DIR / "pm10_ts.png").
         start: Start of the period to plot. Partial dates work, e.g. "2023" or "2023-03".
-        end: End of the period (inclusive). Defaults to `start`'s period if only `start` is a partial date, see notes.
+        end: End of the period (inclusive). Partial dates include the whole period.
+
     Returns:
         The matplotlib Figure.
+
+    Examples:
+        >>> draw_timeseries(df, x="datetime", y="PM2.5", start="2023-03-10", end="2023-03-17")
+        >>> draw_timeseries(df, x="datetime", y="PM2.5", start="2023")
+        >>> draw_timeseries(
+        ...     df, x="datetime", y="PM2.5",
+        ...     start="2023-03-10 06:00", end="2023-03-10 18:00", date_format="%H:%M",
+        ... )
     """
     y_cols = [y] if isinstance(y, str) else list(y)
-    secondary_y = list(secondary_y) if secondary_y else []
+    secondary_cols = list(secondary_y) if secondary_y else []
+    # columns given only in secondary_y are plotted too
+    y_cols += [c for c in secondary_cols if c not in y_cols]
 
     if labels is not None and len(labels) != len(y_cols):
-        raise ValueError("`labels` must have the same length as `y`.")
+        raise ValueError(
+            f"`labels` has {len(labels)} items but {len(y_cols)} columns are plotted."
+        )
     label_map = dict(zip(y_cols, labels if labels is not None else y_cols))
 
     # Build a clean, time-indexed frame
@@ -152,18 +189,20 @@ def draw_timeseries(
     palette = seaborn.color_palette("deep", n_colors=len(y_cols))
 
     fig, ax = pyplot.subplots(figsize=figsize)
-    ax2 = ax.twinx() if secondary_y else None
+    ax2: Axes | None = ax.twinx() if secondary_cols else None
 
-    handles = []
+    handles: list[Line2D] = []
     for col, color in zip(y_cols, palette):
-        target = ax2 if col in secondary_y else ax
+        target = ax
+        if col in secondary_cols and ax2 is not None:
+            target = ax2
         (line,) = target.plot(
             df.index,
             df[col],
             label=label_map[col],
             color=color,
             linewidth=linewidth,
-            marker="o" if markers else None,
+            marker="o" if markers else "",
             markersize=3,
         )
         handles.append(line)
@@ -176,7 +215,10 @@ def draw_timeseries(
         ax.set_ylabel(label_map[y_cols[0]], fontsize=12)
 
     if ax2 is not None:
-        ax2.set_ylabel(secondary_y_label or ", ".join(label_map[c] for c in secondary_y), fontsize=12)
+        ax2.set_ylabel(
+            secondary_y_label or ", ".join(label_map[c] for c in secondary_cols),
+            fontsize=12,
+        )
         ax2.grid(False)
 
     if title:
@@ -190,11 +232,10 @@ def draw_timeseries(
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
 
-    # Single combined legend (covers both axes)
+    # Single combined legend (covers both axes); labels come from the line handles
     if legend and (len(y_cols) > 1 or labels is not None):
         ax.legend(
             handles=handles,
-            labels=[h.get_label() for h in handles],
             loc=legend_loc,
             frameon=True,
             framealpha=0.9,
@@ -208,9 +249,8 @@ def draw_timeseries(
         save_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(save_path, dpi=300, bbox_inches="tight")
 
-    pyplot.close(fig)  
+    pyplot.close(fig)  # avoids the duplicate display in Jupyter
     return fig
-    
 
 
 if __name__ == "__main__":

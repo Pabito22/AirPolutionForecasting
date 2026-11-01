@@ -3,16 +3,14 @@
 from airpollutionforecasting.data.splitter import DataSplitter
 
 from datetime import datetime
-from pathlib import Path
 from types import SimpleNamespace
 
-import pandas 
-
+import pandas
 
 
 def test_split_dates(tmp_path, monkeypatch):
     """Test DataSplitter."""
-    
+
     # Arrange: configure the splitter
     dates = [
         datetime(2023, 6, 15, 22),
@@ -33,14 +31,16 @@ def test_split_dates(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     # Arrange: input data, including timestamps at every boundary
-    loaded_data = pandas.DataFrame({
-        "time": pandas.date_range(
-            "2023-06-15 21:00",
-            "2023-06-16 04:00",
-            freq="h",
-        ),
-        "value": range(8),
-    })
+    loaded_data = pandas.DataFrame(
+        {
+            "time": pandas.date_range(
+                "2023-06-15 21:00",
+                "2023-06-16 04:00",
+                freq="h",
+            ),
+            "value": range(8),
+        }
+    )
 
     # Act
     files = splitter.split(loaded_data)
@@ -55,10 +55,7 @@ def test_split_dates(tmp_path, monkeypatch):
         pandas.date_range(dates[4], dates[5], freq="h"),
     ]
 
-    actual_dates = [
-        pandas.to_datetime(pandas.read_csv(file)["time"])
-        for file in files
-    ]
+    actual_dates = [pandas.to_datetime(pandas.read_csv(file)["time"]) for file in files]
 
     for actual, expected in zip(actual_dates, expected_dates):
         pandas.testing.assert_series_equal(

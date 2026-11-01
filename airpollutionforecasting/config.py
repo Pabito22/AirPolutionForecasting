@@ -70,11 +70,15 @@ class DatasetConfig:
                 path=dataset_config["path"],
                 column_mapping=dataset_config["column_mapping"],
                 column_types=dataset_config["column_types"],
-                data_split_dates = [datetime.fromisoformat(val) for val in dataset_config["data_split_dates"]],
-                numeric_cols = [k for k in dataset_config["column_types"].keys() if k != "time"]   
+                data_split_dates=[
+                    datetime.fromisoformat(val)
+                    for val in dataset_config["data_split_dates"]
+                ],
+                numeric_cols=[
+                    k for k in dataset_config["column_types"].keys() if k != "time"
+                ],
             )
         except (KeyError, TypeError) as error:
             raise ValueError(
                 "Invalid or incomplete dataset configuration in YAML."
             ) from error
-

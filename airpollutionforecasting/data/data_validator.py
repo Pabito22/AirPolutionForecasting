@@ -1,7 +1,6 @@
 """Validates data quality."""
 
 import pandas
-from typing import Optional
 from loguru import logger
 
 from airpollutionforecasting.config import DatasetConfig
@@ -85,6 +84,7 @@ class DataValidator:
             raise DataValidationError(
                 f"Data contains missing values in columns: {missing_columns}."
             )
+
     def _validate_no_duplicates(self, loaded_data: pandas.DataFrame) -> None:
         """Ensure that no duplicated rows exist."""
         duplicated = loaded_data.duplicated()
@@ -94,8 +94,7 @@ class DataValidator:
                 f"Data contains {duplicated.sum()} duplicated rows."
             )
 
-    def _validate_chronological_order(
-        self, loaded_data: pandas.DataFrame) -> None:
+    def _validate_chronological_order(self, loaded_data: pandas.DataFrame) -> None:
         """Ensure data is sorted chronologically."""
         datetime_column = self.dataset_config.column_mapping.get("time", "datetime")
 
@@ -104,9 +103,7 @@ class DataValidator:
                 f"Data is not sorted chronologically by '{datetime_column}'."
             )
 
-    def _validate_time_continuity(
-        self, loaded_data: pandas.DataFrame
-    ) -> None:
+    def _validate_time_continuity(self, loaded_data: pandas.DataFrame) -> None:
         """Ensure there are no missing hourly timestamps."""
         datetime_column = self.dataset_config.column_mapping.get("time", "datetime")
 
@@ -126,7 +123,6 @@ class DataValidator:
         if loaded_data[datetime_column].duplicated().any():
             raise DataValidationError("Data contains duplicated timestamps.")
 
-    
     def validate(self, loaded_data: pandas.DataFrame) -> None:
         """
         Validate the quality and consistency of the processed dataset.
