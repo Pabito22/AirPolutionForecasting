@@ -14,9 +14,12 @@ requires-python = ">=3.12,<3.14"
 
 dependencies = [
     "loguru",
+    "matplotlib>=3.11.2",
     "pandas",
+    "pip>=26.2.2",
     "python-dotenv",
     "pyyaml>=6.0.3",
+    "seaborn>=0.13.2",
     "tqdm",
     "typer",
 ]
