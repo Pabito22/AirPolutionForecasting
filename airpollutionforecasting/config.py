@@ -45,6 +45,7 @@ class DatasetConfig:
         column_types (dict[str, str]): Mapping of column name to its type.
         data_split_dates (list[datetime]): List of dates, that specify the start and end of train, validation
             and test datasets: [train_start, train_end, val_start, val_end, test_start, test_end]
+        numeric_cols (list[str]): A list of numerical columns used in the oryginal dataset.
     """
 
     min_date: datetime
@@ -53,6 +54,7 @@ class DatasetConfig:
     column_mapping: dict[str, str]
     column_types: dict[str, str]
     data_split_dates: list[datetime]
+    numeric_cols: list["str"]
 
     @classmethod
     def load_config(cls, config_path: Path = CONFIG_PATH) -> "DatasetConfig":
@@ -69,8 +71,10 @@ class DatasetConfig:
                 column_mapping=dataset_config["column_mapping"],
                 column_types=dataset_config["column_types"],
                 data_split_dates = [datetime.fromisoformat(val) for val in dataset_config["data_split_dates"]],
+                numeric_cols = [k for k in dataset_config["column_types"].keys() if k != "time"]   
             )
         except (KeyError, TypeError) as error:
             raise ValueError(
                 "Invalid or incomplete dataset configuration in YAML."
             ) from error
+
