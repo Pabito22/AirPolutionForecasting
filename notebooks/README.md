@@ -1,0 +1,41 @@
+Important info 
+
+---
+
+All notebooks need to use the following configuration when performing EDA!
+```yaml
+dataset:
+  min_date: "2016-01-01 00:00"
+  max_date: "2025-06-30 23:00"
+  data_split_dates:
+    - "2016-01-01 00:00"
+    - "2023-06-15 23:00"
+    - "2023-06-16 00:00"
+    - "2024-06-15 23:00"
+    - "2024-06-16 00:00"
+    - "2025-06-15 23:00"
+  path: "data/cleaned/cleaned_dataset.csv"
+  column_mapping:
+    time : time
+    averageAirTemp : air_temp
+    averageDewPointTemperature: dew_point_temp
+    averageRelativeHumidity : relative_humidity
+    averageAirPressure : air_pressure
+    averageSeaLevelPressure : sea_level_pressure
+    averageWindDirection : wind_direction
+    averageWindSpeed : wind_speed
+    cloud_cover_low (%) : cloud_cover
+    mean : pm_10
+  column_types:
+    time: datetime
+    air_temp: float64
+    dew_point_temp: float64
+    relative_humidity: float64
+    air_pressure: float64
+    sea_level_pressure: float64
+    wind_direction: float64
+    wind_speed: float64
+    cloud_cover: float64
+    pm_10: float64
+
+```
