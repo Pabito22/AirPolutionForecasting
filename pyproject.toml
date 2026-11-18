@@ -16,6 +16,7 @@ dependencies = [
     "loguru",
     "matplotlib>=3.11.2",
     "matplotlib-inline>=0.2.2",
+    "numpy>=2.5.1",
     "pandas",
     "python-dotenv",
     "pyyaml>=6.0.3",
@@ -58,3 +59,10 @@ exclude = [
     "test*",
     "tests*"
 ]
+
+[[tool.mypy.overrides]]
+module = ["statsmodels.*"]
+ignore_missing_imports = true
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["matplotlib-inline"]
