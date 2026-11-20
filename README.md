@@ -16,14 +16,22 @@ Project aims to predict future PM10 concetration based on historical and future 
 │   ├── cleaned        <- Cleaned, combined data (1 step afterr raw).
 │   ├── processed      <- The final, canonical data sets for modeling.
 │   └── raw            <- The original, immutable data dump.
-│
+|
+├── eda
+│   ├── ts_correlation <- utils for aoutocorrelation and lagged correlation of covariates
+│   └── ts_stationarity <- utils for checking stationarity of time series
+|
 ├── docs               <- A default mkdocs project; see www.mkdocs.org for details
 │
 ├── models             <- Trained and serialized models, model predictions, or model summaries
 │
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
+├── notebooks          <-  Naming convention is a number (for ordering), the creator's initials, and a short `-` delimited description, e.g.
+|   ├── README.md      <-  Info about config used for EDA puprposes (notebooks 2-4)
+│   ├── 1-PW-Data-set-preparation   <- How data was collected from other project
+│   ├── 2-PW-initial-EDA    <-EDA, periods,plots, boxplots, correlations, min max values etc
+│   ├── 3-PW-..             <- MSTL, periods, trend
+│   └── 4-PW ..            <- Autocorrelation, lagged correlation, stationarity test
+│                         
 │
 ├── pyproject.toml     <- Project configuration file with package metadata for
 │                         airpollutionforecasting and configuration for tools like black
