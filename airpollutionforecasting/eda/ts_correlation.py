@@ -4,7 +4,6 @@ import pandas
 from statsmodels.tsa.stattools import acf, pacf
 import numpy
 from matplotlib import pyplot
-from statistics import NormalDist
 from typing import Literal
 
 from statsmodels.graphics.tsaplots import plot_acf
@@ -13,7 +12,7 @@ from statsmodels.graphics.tsaplots import plot_acf
 class TSCorrelationChecker:
     """Calculate autocorrelation and covariates correlation of time series."""
 
-    def __init__(self, data: pandas.DataFrame|pandas.Series, target_col: str):
+    def __init__(self, data: pandas.DataFrame | pandas.Series, target_col: str):
         """Initialize TSCorrelationChecker.
 
         Args:
@@ -176,7 +175,7 @@ class TSCorrelationChecker:
             ValueError: If the series contains NaNs or is too short for nlags.
         """
         if isinstance(self.data, pandas.DataFrame):
-                    series = self.data[self.target_col]
+            series = self.data[self.target_col]
         else:
             series = self.data
 
@@ -242,7 +241,7 @@ class TSCorrelationChecker:
             ValueError: If the series contains NaNs or is too short for nlags.
         """
         if isinstance(self.data, pandas.DataFrame):
-                    series = self.data[self.target_col]
+            series = self.data[self.target_col]
         else:
             series = self.data
 
@@ -342,7 +341,6 @@ class TSCorrelationChecker:
         max_lag: int = 168,
         method: Literal["pearson", "kendall", "spearman"] = "pearson",
         diff_lag: int | None = None,
-        alpha: float = 0.05,
         horizon: int | None = None,
         seasonal_period: int | None = 24,
         figsize_per_plot: tuple[int, int] = (14, 3),
@@ -360,7 +358,6 @@ class TSCorrelationChecker:
             method: Correlation method: "pearson" or "spearman".
             diff_lag: Differencing lag applied before correlating (see
                 `calculate_ccf`).
-            alpha: Significance level for the approximate confidence band.
             horizon: Forecast horizon in steps. If set, lags below it are
                 shaded gray (not available to a past covariate at prediction
                 time) and the strongest usable lag is annotated.
@@ -377,12 +374,6 @@ class TSCorrelationChecker:
             method=method,
             diff_lag=diff_lag,
         )
-
-        # Rough bound: z / sqrt(n). Unreliable for autocorrelated series,
-        # use it as a guide only.
-        n_obs = len(self.data) - (diff_lag or 0)
-        z = NormalDist().inv_cdf(1 - alpha / 2)
-        bound = z / numpy.sqrt(n_obs)
 
         n_plots = ccf.shape[1]
         fig, axes = pyplot.subplots(
@@ -407,18 +398,8 @@ class TSCorrelationChecker:
                     label=f"not usable as past covariate (lag < {horizon})",
                 )
 
-            # Confidence band around zero
-            ax.fill_between(
-                values.index,
-                -bound,
-                bound,
-                color="tab:blue",
-                alpha=0.2,
-                label=f"~{int((1 - alpha) * 100)}% band",
-            )
-
             # Stems: red if outside the band
-            colors = ["tab:red" if abs(v) > bound else "tab:blue" for v in values]
+            colors = ["tab:red"]
             ax.vlines(values.index, 0, values, colors=colors, linewidth=1)
             ax.scatter(values.index, values, c=colors, s=10, zorder=3)
             ax.axhline(0, color="black", linewidth=0.8)
