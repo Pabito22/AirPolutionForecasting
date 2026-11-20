@@ -13,7 +13,7 @@ from statsmodels.graphics.tsaplots import plot_acf
 class TSCorrelationChecker:
     """Calculate autocorrelation and covariates correlation of time series."""
 
-    def __init__(self, data: pandas.DataFrame, target_col: str):
+    def __init__(self, data: pandas.DataFrame|pandas.Series, target_col: str):
         """Initialize TSCorrelationChecker.
 
         Args:
@@ -24,8 +24,9 @@ class TSCorrelationChecker:
         Raises:
             KeyError: If target_col is not in data.
         """
-        if target_col not in data.columns:
-            raise KeyError(f"Column '{target_col}' not found in data.")
+        if isinstance(data, pandas.DataFrame):
+            if target_col not in data.columns:
+                raise KeyError(f"Column '{target_col}' not found in data.")
         self.data = data
         self.target_col = target_col
 
@@ -53,7 +54,10 @@ class TSCorrelationChecker:
         Raises:
             ValueError: If the series contains NaNs or is too short for nlags.
         """
-        series = self.data[self.target_col]
+        if isinstance(self.data, pandas.DataFrame):
+            series = self.data[self.target_col]
+        else:
+            series = self.data
 
         if series.isna().any():
             raise ValueError(
@@ -171,7 +175,10 @@ class TSCorrelationChecker:
         Raises:
             ValueError: If the series contains NaNs or is too short for nlags.
         """
-        series = self.data[self.target_col]
+        if isinstance(self.data, pandas.DataFrame):
+                    series = self.data[self.target_col]
+        else:
+            series = self.data
 
         if series.isna().any():
             raise ValueError(
@@ -234,7 +241,10 @@ class TSCorrelationChecker:
         Raises:
             ValueError: If the series contains NaNs or is too short for nlags.
         """
-        series = self.data[self.target_col]
+        if isinstance(self.data, pandas.DataFrame):
+                    series = self.data[self.target_col]
+        else:
+            series = self.data
 
         if series.isna().any():
             raise ValueError(
