@@ -5,7 +5,7 @@ import yaml
 
 from dotenv import load_dotenv
 from loguru import logger
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
@@ -77,6 +77,47 @@ class DatasetConfig:
                 numeric_cols=[
                     k for k in dataset_config["column_types"].keys() if k != "time"
                 ],
+            )
+        except (KeyError, TypeError) as error:
+            raise ValueError(
+                "Invalid or incomplete dataset configuration in YAML."
+            ) from error
+
+
+@dataclass
+class FeatureConfig:
+    """Features configuration.
+
+    Attributes.
+    keep_cols (list[str]): A list of columns that already exist in the loaded data
+        and will be passed to the next steps of the pipeline. If a column is not listed
+        here it will be dropped and not includedd in modelling, unless defined in other
+        features. Only columns that are present DatasetConfig.column_mapping.values are accepted."""
+
+    keep_cols: list[str] = field(default_factory=list)
+
+    @classmethod
+    def load_config(cls, config_path: Path = CONFIG_PATH) -> "FeatureConfig":
+        """Create a feature configuration from the YAML file."""
+        with config_path.open("r", encoding="utf-8") as conf_file:
+            yaml_config: dict[str, Any] = yaml.safe_load(conf_file)
+        try:
+            feature_config = yaml_config["feature"]
+            # read dataset config to ensure that only columns that are present in data config
+            # are present in feature_config
+            dataset_config = yaml_config["dataset"]
+            keep_cols = feature_config["keep_cols"]
+            allowed_cols = set(dataset_config["column_mapping"].values())
+            invalid_cols = [col for col in keep_cols if col not in allowed_cols]
+            if invalid_cols:
+                raise ValueError(
+                    f"Columns {invalid_cols} not present in "
+                    "dataset.column_mapping values!"
+                )
+            return cls(
+                keep_cols=feature_config["keep_cols"]
+                # Add any new feature congifigs later here
+                # ..
             )
         except (KeyError, TypeError) as error:
             raise ValueError(

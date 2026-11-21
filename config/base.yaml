@@ -31,3 +31,7 @@ dataset:
     wind_speed: float64
     cloud_cover: float64
     pm_10: float64
+
+feature:
+  keep_cols:
+  - "pm_10"

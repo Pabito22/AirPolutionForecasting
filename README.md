@@ -31,7 +31,7 @@ Project aims to predict future PM10 concetration based on historical and future 
 │   ├── 2-PW-initial-EDA    <-EDA, periods,plots, boxplots, correlations, min max values etc
 │   ├── 3-PW-..             <- MSTL, periods, trend
 │   └── 4-PW ..            <- Autocorrelation, lagged correlation, stationarity test
-│                         
+│
 │
 ├── pyproject.toml     <- Project configuration file with package metadata for
 │                         airpollutionforecasting and configuration for tools like black
