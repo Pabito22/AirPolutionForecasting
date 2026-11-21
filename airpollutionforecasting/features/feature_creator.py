@@ -2,14 +2,19 @@
 
 import pandas
 from pathlib import Path
+from loguru import logger
 from airpollutionforecasting.config import DatasetConfig, FeatureConfig
+from airpollutionforecasting.features.base_feature_creator import BaseFeatureCreator
+from airpollutionforecasting.features.keep_cols_creator import KeepColsCreator
 
 
 class FeatureCreator:
     """Class for feature creation orechestration"""
 
-    # Possible features classes.
-    _feature_classes = ["keep_cols"]
+    # Maps a feature type to its creator class.
+    _feature_classes: dict[str, type[BaseFeatureCreator]] = {
+        "keep_cols": KeepColsCreator,
+    }
 
     def __init__(self, data_config: DatasetConfig, feature_config: FeatureConfig):
         """Initialize FeatureCreator.
@@ -35,5 +40,18 @@ class FeatureCreator:
          files still exist in the corresponding paths, this class will return
          the corresponding paths.
         """
-        frame = data.copy()
-        return Path("SillyPath")
+        frames = []
+        for name, creator_cls in self._feature_classes.items():
+            if self._is_enabled(name):
+                logger.info("Creating '{}' features...", name)
+                frames.append(creator_cls(self.feature_config).create_features(data))
+
+        if not frames:
+            raise ValueError("No features specified in the configuration!")
+
+        feature_frame = pandas.concat(frames, axis=1)
+        return Path("Silly path.")
+
+    def _is_enabled(self, name: str) -> bool:
+        """Check whether a feature type is configured."""
+        return len(getattr(self.feature_config, name, [])) > 0

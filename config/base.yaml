@@ -34,4 +34,5 @@ dataset:
 
 feature:
   keep_cols:
+  - "time"
   - "pm_10"

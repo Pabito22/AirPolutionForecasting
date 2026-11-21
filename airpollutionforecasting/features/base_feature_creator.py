@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from airpollutionforecasting.config import FeatureConfig
 
 
-class BaseFeatureClass(ABC):
+class BaseFeatureCreator(ABC):
     """Base for different classes of features."""
 
     def __init__(self, feature_config: FeatureConfig):
