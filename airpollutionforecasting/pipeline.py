@@ -52,6 +52,11 @@ def run_pipeline(
     if stop_step == "split":
         return split_files
 
+    # TODO: Make a method that returns dataframe based on file location
+    # So for the next feature creation step u will do
+    # feature_creator(load_frame(split_files[0])) - this will create features based
+    # on the train data and so on
+
 
 if __name__ == "__main__":
     run_pipeline()
