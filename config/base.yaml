@@ -36,3 +36,5 @@ feature:
   keep_cols:
   - "time"
   - "pm_10"
+  cos_sin_cols:
+    wind_speed: 360

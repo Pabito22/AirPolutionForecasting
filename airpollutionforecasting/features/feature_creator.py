@@ -6,6 +6,7 @@ from loguru import logger
 from airpollutionforecasting.config import DatasetConfig, FeatureConfig
 from airpollutionforecasting.features.base_feature_creator import BaseFeatureCreator
 from airpollutionforecasting.features.keep_cols_creator import KeepColsCreator
+from airpollutionforecasting.features.sin_cos_creator import SinCosCreator
 
 
 class FeatureCreator:
@@ -14,6 +15,7 @@ class FeatureCreator:
     # Maps a feature type to its creator class.
     _feature_classes: dict[str, type[BaseFeatureCreator]] = {
         "keep_cols": KeepColsCreator,
+        "cos_sin_cols": SinCosCreator,
     }
 
     def __init__(self, data_config: DatasetConfig, feature_config: FeatureConfig):
@@ -50,6 +52,9 @@ class FeatureCreator:
             raise ValueError("No features specified in the configuration!")
 
         feature_frame = pandas.concat(frames, axis=1)
+
+        # TODO: Only take care of the paths, go back here later as u don't really know what features
+        # you need!
         return Path("Silly path.")
 
     def _is_enabled(self, name: str) -> bool:

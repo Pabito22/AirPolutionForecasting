@@ -86,40 +86,57 @@ class DatasetConfig:
 
 @dataclass
 class FeatureConfig:
-    """Features configuration.
+    """Configuration of the features used for modelling.
 
-    Attributes.
-    keep_cols (list[str]): A list of columns that already exist in the loaded data
-        and will be passed to the next steps of the pipeline. If a column is not listed
-        here it will be dropped and not includedd in modelling, unless defined in other
-        features. Only columns that are present DatasetConfig.column_mapping.values are accepted."""
+    Each attribute corresponds to one type of feature creator. An empty
+    attribute means that feature type is not used.
+
+    Attributes:
+        keep_cols (list[str]): Columns that already exist in the loaded data and
+            are passed unchanged to the next steps of the pipeline. Any column not
+            listed here is dropped from modelling, unless it is used by another
+            feature type. Only columns present in
+            ``DatasetConfig.column_mapping.values()`` are accepted.
+        cos_sin_cols (dict[str, float]): Periodic columns to be encoded as a
+            sine and cosine pair, mapped to their period (denominator), e.g.
+            ``{"hour": 24, "weekday": 7}``. For each column ``x`` with
+            denominator ``T`` two features are created:
+
+                sin_x = sin(2 * pi * x / T)
+                cos_x = cos(2 * pi * x / T)
+
+            The new feature names are the column name prefixed with ``sin_`` or
+            ``cos_``. Only columns present in
+            ``DatasetConfig.column_mapping.values()`` are accepted.
+
+    Example:
+        >>> FeatureConfig(keep_cols=["pm10"], cos_sin_cols={"hour": 24})
+    """
 
     keep_cols: list[str] = field(default_factory=list)
+    cos_sin_cols: dict[str, float] = field(default_factory=dict)
 
     @classmethod
     def load_config(cls, config_path: Path = CONFIG_PATH) -> "FeatureConfig":
-        """Create a feature configuration from the YAML file."""
         with config_path.open("r", encoding="utf-8") as conf_file:
             yaml_config: dict[str, Any] = yaml.safe_load(conf_file)
         try:
             feature_config = yaml_config["feature"]
-            # read dataset config to ensure that only columns that are present in data config
-            # are present in feature_config
             dataset_config = yaml_config["dataset"]
-            keep_cols = feature_config["keep_cols"]
+
+            keep_cols = feature_config.get("keep_cols", [])
+            cos_sin_cols = feature_config.get("cos_sin_cols", {})
             allowed_cols = set(dataset_config["column_mapping"].values())
-            invalid_cols = [col for col in keep_cols if col not in allowed_cols]
+
+            cols_to_check = [*keep_cols, *cos_sin_cols.keys()]
+            invalid_cols = [c for c in cols_to_check if c not in allowed_cols]
             if invalid_cols:
                 raise ValueError(
                     f"Columns {invalid_cols} not present in "
                     "dataset.column_mapping values!"
                 )
-            return cls(
-                keep_cols=feature_config["keep_cols"]
-                # Add any new feature congifigs later here
-                # ..
-            )
-        except (KeyError, TypeError) as error:
+            return cls(keep_cols=keep_cols, cos_sin_cols=cos_sin_cols)
+        except (KeyError, TypeError, AttributeError) as error:
             raise ValueError(
-                "Invalid or incomplete dataset configuration in YAML."
+                "Invalid or incomplete feature configuration in YAML."
             ) from error
