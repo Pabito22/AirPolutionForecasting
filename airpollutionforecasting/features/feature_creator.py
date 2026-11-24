@@ -9,6 +9,7 @@ from airpollutionforecasting.config import DatasetConfig, FeatureConfig
 from airpollutionforecasting.features.base_feature_creator import BaseFeatureCreator
 from airpollutionforecasting.features.keep_cols_creator import KeepColsCreator
 from airpollutionforecasting.features.sin_cos_creator import SinCosCreator
+from airpollutionforecasting.config import PROJ_ROOT
 
 
 class FeatureCreator:
@@ -33,20 +34,56 @@ class FeatureCreator:
     def create(
         self, data: pandas.DataFrame, split: Literal["train", "val", "test"]
     ) -> Path:
-        """Creates features as specyfied in the congig and saves in a .csv file.
+        """Create features as specified in the config and save them to a CSV file.
+
+        If a file for this split and this pair of configurations already
+        exists, nothing is recomputed and the existing path is returned.
 
         Args:
-        data: Data (loaded and validated) based on which features for modelling will be extracted.
-        split: What data split is it "val" "test" or "train". Used for saving files.
+            data (pandas.DataFrame): Loaded and validated data from which the
+                features for modelling are extracted.
+            split (Literal["train", "val", "test"]): Data split the data belongs
+                to. Used in the file name.
+
         Returns:
-            Paths to the file containg data with newly created features.
+            Path: Location of the CSV file containing the created features.
+
+        Raises:
+            ValueError: If a configuration is not registered (has no hash) or
+                no features are specified in the configuration.
+
         Notes:
-        Each file that is created by this class
-        contains data that is created based on the provided configurationn files.
-        If the specified configuration appeard before and the corresponfing
-         files still exist in the corresponding paths, this class will return
-         the corresponding paths.
+            Files are saved in ``<PROJ_ROOT>/data/feature/`` and named::
+
+                <split>_feature_<feature_hash>_data_<data_hash>.csv
+
+            where ``<split>`` is "train", "val" or "test", ``<feature_hash>`` is
+            the hash of the feature configuration and ``<data_hash>`` the hash
+            of the dataset configuration. The matching configurations are
+            stored in ``logs/feature_config/<feature_hash>.yaml`` and
+            ``logs/dataset_config/<data_hash>.yaml``. The same configurations
+            therefore always map to the same file name, and different ones never
+            overwrite each other.
         """
+        if (
+            self.feature_config.config_hash is None
+            or self.data_config.config_hash is None
+        ):
+            raise ValueError(
+                "Both configurations must be registered (hashed) before creating features."
+            )
+
+        output_dir = PROJ_ROOT / "data" / "feature"
+        file_name = (
+            f"{split}_feature_{self.feature_config.config_hash}"
+            f"_data_{self.data_config.config_hash}.csv"
+        )
+        path = output_dir / file_name
+
+        if path.exists():
+            logger.info("Features already exist, reusing {}", path)
+            return path
+
         frames = []
         for name, creator_cls in self._feature_classes.items():
             if self._is_enabled(name):
@@ -58,12 +95,13 @@ class FeatureCreator:
 
         feature_frame = pandas.concat(frames, axis=1)
 
-        # TODO: Only take care of the paths, go back here later as u don't really know what features
-        # you need!
-        # for each run, save the configuration and create filename based on that configuration
-        # for example pass the configuration name to some function, and it will save it somewhere
-        # only one name can exist per existing configuration
-        return Path("Silly path.")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        tmp_path = path.with_suffix(".csv.tmp")
+        feature_frame.to_csv(tmp_path, index=False)
+        tmp_path.replace(path)
+
+        logger.info("Saved features to {}", path)
+        return path
 
     def _is_enabled(self, name: str) -> bool:
         """Check whether a feature type is configured."""
