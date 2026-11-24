@@ -65,6 +65,7 @@ class DataSplitter:
 
         output_dir = PROJ_ROOT / "data" / "loaded"
         output_dir.mkdir(parents=True, exist_ok=True)
+        #TODO: Make the saving mechanism utilize the hashed configurations as in feature_creator
 
         split_files: list[Path] = [
             output_dir

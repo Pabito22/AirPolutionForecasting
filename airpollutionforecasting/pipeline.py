@@ -7,7 +7,8 @@ import pandas
 from airpollutionforecasting.data.loader import DataLoader
 from airpollutionforecasting.data.data_validator import DataValidator
 from airpollutionforecasting.data.splitter import DataSplitter
-from airpollutionforecasting.config import DatasetConfig
+from airpollutionforecasting.config import DatasetConfig, FeatureConfig
+from airpollutionforecasting.features.feature_creator import FeatureCreator
 
 from loguru import logger
 
@@ -28,6 +29,7 @@ def run_pipeline(
     logger.info(f"Running pipeline until {stop_step}...")
 
     data_config = DatasetConfig.load_config()
+    feature_config = FeatureConfig.load_config()
 
     # 1. Load
     loader = DataLoader(data_config=data_config)
@@ -52,10 +54,17 @@ def run_pipeline(
     if stop_step == "split":
         return split_files
 
+    # 4. Feature creation
+    feature_creator = FeatureCreator(data_config=data_config, feature_config=feature_config)
     # TODO: Make a method that returns dataframe based on file location
     # So for the next feature creation step u will do
     # feature_creator(load_frame(split_files[0]), "train") - this will create features based
     # on the train data and so on
+    # TODO: make other steps utilize the new saving files functionality
+    # TODO: test your solution
+
+    if stop_step == 'feature_creation':
+        return None
 
 
 if __name__ == "__main__":
