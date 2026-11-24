@@ -3,6 +3,8 @@
 import pandas
 from pathlib import Path
 from loguru import logger
+from typing import Literal
+
 from airpollutionforecasting.config import DatasetConfig, FeatureConfig
 from airpollutionforecasting.features.base_feature_creator import BaseFeatureCreator
 from airpollutionforecasting.features.keep_cols_creator import KeepColsCreator
@@ -28,11 +30,14 @@ class FeatureCreator:
         self.data_config = data_config
         self.feature_config = feature_config
 
-    def create(self, data: pandas.DataFrame) -> Path:
-        """Creates features as specyfied in the congig.
+    def create(
+        self, data: pandas.DataFrame, split: Literal["train", "val", "test"]
+    ) -> Path:
+        """Creates features as specyfied in the congig and saves in a .csv file.
 
         Args:
         data: Data (loaded and validated) based on which features for modelling will be extracted.
+        split: What data split is it "val" "test" or "train". Used for saving files.
         Returns:
             Paths to the file containg data with newly created features.
         Notes:
@@ -55,6 +60,9 @@ class FeatureCreator:
 
         # TODO: Only take care of the paths, go back here later as u don't really know what features
         # you need!
+        # for each run, save the configuration and create filename based on that configuration
+        # for example pass the configuration name to some function, and it will save it somewhere
+        # only one name can exist per existing configuration
         return Path("Silly path.")
 
     def _is_enabled(self, name: str) -> bool:

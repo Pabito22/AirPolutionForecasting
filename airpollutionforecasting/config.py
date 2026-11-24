@@ -1,5 +1,6 @@
 """Configuration file for PM10 forecasting project."""
 
+import hashlib
 from pathlib import Path
 import yaml
 
@@ -31,9 +32,58 @@ FIGURES_DIR = REPORTS_DIR / "figures"
 # Load the YAML configuration
 CONFIG_PATH = PROJ_ROOT / "config" / "base.yaml"
 
+# Place to keep the logs of configurations used
+LOGS_DIR = PROJ_ROOT / "logs"
+
 
 @dataclass
-class DatasetConfig:
+class SavedConfigMixin:
+    """Adds hash-based persistence to a configuration dataclass.
+
+    After ``register_config`` is called, the configuration section is stored in
+    ``<logs_dir>/<section>/<hash>.yaml`` and the hash and path are kept on the
+    instance, so downstream steps can name their output files after them.
+
+    Attributes:
+        config_hash (str | None): Short SHA-256 hash of the canonical section.
+        config_path (Path | None): Location of the saved configuration file.
+    """
+
+    # kw_only lets subclasses keep their own non-default fields (e.g. DatasetConfig).
+    config_hash: str | None = field(default=None, kw_only=True, compare=False)
+    config_path: Path | None = field(default=None, kw_only=True, compare=False)
+
+    def register_config(
+        self,
+        section_name: str,
+        raw_section: dict[str, Any],
+        logs_dir: Path = LOGS_DIR,
+        hash_length: int = 12,
+    ) -> None:
+        """Hash the configuration section and save it under logs_dir/section_name.
+
+        Args:
+            section_name (str): Name of the YAML section, e.g. "feature".
+            raw_section (dict[str, Any]): The section exactly as read from YAML.
+            logs_dir (Path): Root directory for saved configurations.
+            hash_length (int): Number of hex characters of the hash to keep.
+        """
+        canonical = yaml.safe_dump(
+            raw_section, sort_keys=True, default_flow_style=False
+        )
+        self.config_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[
+            :hash_length
+        ]
+
+        path = logs_dir / section_name / f"{self.config_hash}.yaml"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if not path.exists():  # same config -> same file, nothing to rewrite
+            path.write_text(canonical, encoding="utf-8")
+        self.config_path = path
+
+
+@dataclass
+class DatasetConfig(SavedConfigMixin):
     """Dataset configuration.
 
     Attributes:
@@ -64,7 +114,7 @@ class DatasetConfig:
 
         try:
             dataset_config = yaml_config["dataset"]
-            return cls(
+            instance = cls(
                 min_date=datetime.fromisoformat(dataset_config["min_date"]),
                 max_date=datetime.fromisoformat(dataset_config["max_date"]),
                 path=dataset_config["path"],
@@ -78,6 +128,8 @@ class DatasetConfig:
                     k for k in dataset_config["column_types"].keys() if k != "time"
                 ],
             )
+            instance.register_config("dataset", dataset_config)
+            return instance
         except (KeyError, TypeError) as error:
             raise ValueError(
                 "Invalid or incomplete dataset configuration in YAML."
@@ -85,7 +137,7 @@ class DatasetConfig:
 
 
 @dataclass
-class FeatureConfig:
+class FeatureConfig(SavedConfigMixin):
     """Configuration of the features used for modelling.
 
     Each attribute corresponds to one type of feature creator. An empty
@@ -135,7 +187,9 @@ class FeatureConfig:
                     f"Columns {invalid_cols} not present in "
                     "dataset.column_mapping values!"
                 )
-            return cls(keep_cols=keep_cols, cos_sin_cols=cos_sin_cols)
+            instance = cls(keep_cols=keep_cols, cos_sin_cols=cos_sin_cols)
+            instance.register_config("feature", feature_config)
+            return instance
         except (KeyError, TypeError, AttributeError) as error:
             raise ValueError(
                 "Invalid or incomplete feature configuration in YAML."
