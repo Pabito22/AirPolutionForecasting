@@ -9,12 +9,13 @@ from airpollutionforecasting.data.data_validator import DataValidator
 from airpollutionforecasting.data.splitter import DataSplitter
 from airpollutionforecasting.config import DatasetConfig, FeatureConfig
 from airpollutionforecasting.features.feature_creator import FeatureCreator
+from airpollutionforecasting.utils import load_data_from_path
 
 from loguru import logger
 
 
 def run_pipeline(
-    stop_step: Literal["load", "validate", "split"] = "split",
+    stop_step: Literal["load", "validate", "split", "feature"] = "split",
 ) -> None | pandas.DataFrame | list[Path]:
     """Run pipeline till the stop_step
 
@@ -55,18 +56,32 @@ def run_pipeline(
         return split_files
 
     # 4. Feature creation
+
+    logger.info("Creating features based on the config..")
+
+    # load the data produced by split step
+    train_data = load_data_from_path(data_path=split_files[0], datetime_cols=["time"])
+    val_data = load_data_from_path(data_path=split_files[1], datetime_cols=["time"])
+    test_data = load_data_from_path(data_path=split_files[2], datetime_cols=["time"])
+
+    # create the features as in configuration
     feature_creator = FeatureCreator(
         data_config=data_config, feature_config=feature_config
     )
-    # TODO: Make a method that returns dataframe based on file location
-    # So for the next feature creation step u will do
-    # feature_creator(load_frame(split_files[0]), "train") - this will create features based
-    # on the train data and so on
+
+    feature_files: list[Path] = [
+        feature_creator.create(train_data, "train"),
+        feature_creator.create(val_data, "val"),
+        feature_creator.create(test_data, "test"),
+    ]
+
     # TODO: make other steps utilize the new saving files functionality
     # TODO: test your solution
 
-    if stop_step == "feature_creation":
-        return None
+    logger.info(f"Features successfully created: {feature_files}")
+
+    if stop_step == "feature":
+        return feature_files
 
 
 if __name__ == "__main__":

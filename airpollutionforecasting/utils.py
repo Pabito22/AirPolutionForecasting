@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas
 
 
-def load_data(
+def load_data_from_path(
     data_path: Path, datetime_cols: None | list[str] = None
 ) -> pandas.DataFrame:
     """Load the data from the given path and return it as pandas.DataFrame.
