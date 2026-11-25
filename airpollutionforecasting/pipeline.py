@@ -55,7 +55,9 @@ def run_pipeline(
         return split_files
 
     # 4. Feature creation
-    feature_creator = FeatureCreator(data_config=data_config, feature_config=feature_config)
+    feature_creator = FeatureCreator(
+        data_config=data_config, feature_config=feature_config
+    )
     # TODO: Make a method that returns dataframe based on file location
     # So for the next feature creation step u will do
     # feature_creator(load_frame(split_files[0]), "train") - this will create features based
@@ -63,7 +65,7 @@ def run_pipeline(
     # TODO: make other steps utilize the new saving files functionality
     # TODO: test your solution
 
-    if stop_step == 'feature_creation':
+    if stop_step == "feature_creation":
         return None
 
 
